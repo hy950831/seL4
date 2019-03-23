@@ -46,6 +46,7 @@
 #define seL4_HugePageBits       29
 #define seL4_PageTableBits      12
 
+#define seL4_NumASIDPoolsBits    5
 #define seL4_ASIDPoolIndexBits  4
 #define seL4_ASIDPoolBits       12
 
@@ -80,5 +81,8 @@ enum {
     seL4_UserException_Code,
     seL4_UserException_Length,
 } seL4_UserException_Msg;
+
+/* First address in the virtual address space that is not accessible to user level */
+#define seL4_UserTop 0x80000000lu
 
 #endif

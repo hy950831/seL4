@@ -48,7 +48,11 @@
 #define UNUSED       __attribute__((unused))
 #define USED         __attribute__((used))
 #define FASTCALL     __attribute__((fastcall))
+#ifdef __clang__
+#define FORCE_O2     /* nothing */
+#else
 #define FORCE_O2     __attribute__((optimize("O2")))
+#endif
 /** MODIFIES: */
 void __builtin_unreachable(void);
 #define UNREACHABLE()  __builtin_unreachable()
@@ -90,14 +94,14 @@ void __builtin_unreachable(void);
 void halt(void) NORETURN;
 void memzero(void *s, unsigned long n);
 void *memset(void *s, unsigned long c, unsigned long n) VISIBLE;
-void *memcpy(void* ptr_dst, const void* ptr_src, unsigned long n) VISIBLE;
+void *memcpy(void *ptr_dst, const void *ptr_src, unsigned long n) VISIBLE;
 int PURE strncmp(const char *s1, const char *s2, int n);
 long CONST char_to_long(char c);
-long PURE str_to_long(const char* str);
+long PURE str_to_long(const char *str);
 
 
-int __builtin_clzl (unsigned long x);
-int __builtin_ctzl (unsigned long x);
+int __builtin_clzl(unsigned long x);
+int __builtin_ctzl(unsigned long x);
 
 #ifdef CONFIG_ARCH_RISCV
 uint32_t __clzsi2(uint32_t x);
@@ -135,7 +139,7 @@ CONST ctzl(unsigned long x)
 
 #define CTZL(x) __builtin_ctzl(x)
 
-int __builtin_popcountl (unsigned long x);
+int __builtin_popcountl(unsigned long x);
 
 /** DONT_TRANSLATE */
 static inline long

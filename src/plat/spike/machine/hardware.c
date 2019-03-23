@@ -35,38 +35,35 @@
 /* Available physical memory regions on platform (RAM minus kernel image). */
 /* NOTE: Regions are not allowed to be adjacent! */
 
-static word_t BOOT_DATA num_avail_p_regs = 0;
-static p_region_t BOOT_DATA avail_p_regs[MAX_AVAIL_P_REGS];
+static p_region_t BOOT_DATA avail_p_regs[] = {
+    /* The first 2MB are reserved for the SBI in the BBL */
+#if defined(CONFIG_BUILD_ROCKET_CHIP_ZEDBOARD)
+    { /*.start = */ 0x0, /* .end = */ 0x10000000}
+#elif defined(CONFIG_ARCH_RISCV64)
+    { /*.start = */ 0x80200000, /* .end = */ 0x17FF00000}
+#elif defined(CONFIG_ARCH_RISCV32)
+    { /*.start = */ 0x80200000, /* .end = */ 0xFD000000}
+#endif
+};
 
 BOOT_CODE int get_num_avail_p_regs(void)
 {
-    return num_avail_p_regs;
+    return sizeof(avail_p_regs) / sizeof(p_region_t);
 }
 
-BOOT_CODE p_region_t get_avail_p_reg(unsigned int i)
+BOOT_CODE p_region_t get_avail_p_reg(word_t i)
 {
     return avail_p_regs[i];
-}
-
-BOOT_CODE bool_t add_avail_p_reg(p_region_t reg)
-{
-    if (num_avail_p_regs == MAX_AVAIL_P_REGS) {
-        return false;
-    }
-    avail_p_regs[num_avail_p_regs] = reg;
-    num_avail_p_regs++;
-    return true;
 }
 
 /**
    DONT_TRANSLATE
  */
-interrupt_t
-getActiveIRQ(void)
+interrupt_t getActiveIRQ(void)
 {
 
     uint64_t temp = 0;
-    asm volatile ("csrr %0, scause":"=r" (temp)::);
+    asm volatile("csrr %0, scause":"=r"(temp));
 
     if (!(temp & BIT(CONFIG_WORD_SIZE - 1))) {
         return irqInvalid;
@@ -85,8 +82,7 @@ bool_t isIRQPending(void)
 /**
    DONT_TRANSLATE
 */
-void
-maskInterrupt(bool_t disable, interrupt_t irq)
+void maskInterrupt(bool_t disable, interrupt_t irq)
 {
     if (disable) {
         if (irq > 1) {
@@ -103,22 +99,13 @@ maskInterrupt(bool_t disable, interrupt_t irq)
 }
 
 /* Determine if the given IRQ should be reserved by the kernel. */
-bool_t CONST
-isReservedIRQ(irq_t irq)
+bool_t CONST isReservedIRQ(irq_t irq)
 {
     printf("isReservedIRQ \n");
     return false;
 }
 
-/* Handle a platform-reserved IRQ. */
-void
-handleReservedIRQ(irq_t irq)
-{
-    printf("handleReservedIRQ \n");
-}
-
-void
-ackInterrupt(irq_t irq)
+void ackInterrupt(irq_t irq)
 {
     // don't ack the kernel timer interrupt, see the comment in resetTimer
     // to understand why
@@ -136,18 +123,18 @@ static inline uint64_t get_cycles(void)
 #if __riscv_xlen == 32
 {
     uint32_t nH, nL;
-    __asm__ __volatile__ (
+    asm volatile(
         "rdtimeh %0\n"
         "rdtime  %1\n"
-        : "=r" (nH), "=r" (nL));
-    return ((uint64_t) ((uint64_t) nH << 32)) | (nL);
+        : "=r"(nH), "=r"(nL));
+    return ((uint64_t)((uint64_t) nH << 32)) | (nL);
 }
 #else
 {
     uint64_t n;
-    __asm__ __volatile__ (
+    asm volatile(
         "rdtime %0"
-        : "=r" (n));
+        : "=r"(n));
     return n;
 }
 #endif
@@ -158,8 +145,7 @@ static inline int read_current_timer(unsigned long *timer_val)
     return 0;
 }
 
-void
-resetTimer(void)
+void resetTimer(void)
 {
     uint64_t target;
     // ack the timer interrupt. we do this here as due to slow simulation platform there
@@ -177,8 +163,7 @@ resetTimer(void)
 /**
    DONT_TRANSLATE
  */
-BOOT_CODE void
-initTimer(void)
+BOOT_CODE void initTimer(void)
 {
     sbi_set_timer(get_cycles() + RESET_CYCLES);
 }
@@ -197,22 +182,19 @@ void plat_cleanInvalidateL2Range(paddr_t start, paddr_t end)
 /**
    DONT_TRANSLATE
  */
-BOOT_CODE void
-initL2Cache(void)
+BOOT_CODE void initL2Cache(void)
 {
 }
 
 /**
    DONT_TRANSLATE
  */
-BOOT_CODE void
-initIRQController(void)
+BOOT_CODE void initIRQController(void)
 {
     /* Do nothing */
 }
 
-void
-handleSpuriousIRQ(void)
+void handleSpuriousIRQ(void)
 {
     /* Do nothing */
     printf("Superior IRQ!! \n");

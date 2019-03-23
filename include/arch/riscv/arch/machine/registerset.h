@@ -55,7 +55,7 @@ enum _register {
 
     s2 = 17,
     s3 = 18,
-    s4 = 10,
+    s4 = 19,
     s5 = 20,
     s6 = 21,
     s7 = 22,
@@ -80,12 +80,12 @@ enum _register {
     n_contextRegisters
 };
 
-typedef uint64_t register_t;
+typedef word_t register_t;
 
 enum messageSizes {
     n_msgRegisters = 4,
-    n_frameRegisters = 17,
-    n_gpRegisters = 0,
+    n_frameRegisters = 31,
+    n_gpRegisters = 1,
     n_exceptionMessage = 3,
     n_syscallMessage = 10
 };
@@ -99,14 +99,13 @@ struct user_context {
 };
 typedef struct user_context user_context_t;
 
-static inline void Arch_initContext(user_context_t* context)
+static inline void Arch_initContext(user_context_t *context)
 {
     /* Enable supervisor interrupts (when going to user-mode) */
     context->registers[SSTATUS] = SSTATUS_SPIE;
 }
 
-static inline word_t CONST
-sanitiseRegister(register_t reg, word_t v, bool_t archInfo)
+static inline word_t CONST sanitiseRegister(register_t reg, word_t v, bool_t archInfo)
 {
     return v;
 }

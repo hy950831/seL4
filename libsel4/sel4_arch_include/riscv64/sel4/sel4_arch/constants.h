@@ -43,12 +43,13 @@
 #define seL4_TeraPageBits      39
 #define seL4_PageTableBits     12
 
+#define seL4_NumASIDPoolsBits    6
 #define seL4_ASIDPoolIndexBits  10
 #define seL4_ASIDPoolBits       12
 
 /* Untyped size limits */
 #define seL4_MinUntypedBits     4
-#define seL4_MaxUntypedBits     47
+#define seL4_MaxUntypedBits     38
 
 enum {
     seL4_VMFault_IP,
@@ -81,5 +82,8 @@ enum {
     seL4_UserException_Code,
     seL4_UserException_Length,
 } seL4_UserException_Msg;
+
+/* First address in the virtual address space that is not accessible to user level */
+#define seL4_UserTop 0x0000003ffffff000
 
 #endif

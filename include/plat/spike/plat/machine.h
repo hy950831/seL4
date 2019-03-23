@@ -19,9 +19,6 @@
 #ifndef __PLAT_MACHINE_H
 #define __PLAT_MACHINE_H
 
-
-#define N_INTERRUPTS 6
-
 #ifndef __ASSEMBLER__
 enum IRQConstants {
     INTERRUPT_SW = 0,
@@ -30,7 +27,6 @@ enum IRQConstants {
     maxIRQ = 5
 } platform_interrupt_t;
 
-#define IRQ_CNODE_BITS 12
 #define KERNEL_TIMER_IRQ INTERRUPT_TIMER
 
 enum irqNumbers {

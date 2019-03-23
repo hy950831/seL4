@@ -12,11 +12,6 @@
 
 #include <arch/machine/hardware.h>
 
-static inline void invalidateByWSL(word_t wsl)
-{
-    asm volatile("dc isw, %0" : : "r"(wsl));
-}
-
 static inline void cleanByWSL(word_t wsl)
 {
     asm volatile("dc csw, %0" : : "r"(wsl));
@@ -63,8 +58,7 @@ static inline word_t readCacheSize(int level, bool_t instruction)
 #define ASSOC(s)        ((((s) >> 3) & MASK(10)) + 1)
 #define NSETS(s)        ((((s) >> 13) & MASK(15)) + 1)
 
-void
-clean_D_PoU(void)
+void clean_D_PoU(void)
 {
     int clid = readCLID();
     int lou = LOUU(clid);
@@ -91,8 +85,7 @@ clean_D_PoU(void)
     }
 }
 
-void
-cleanInvalidate_D_PoC(void)
+void cleanInvalidate_D_PoC(void)
 {
     int clid = readCLID();
     int loc = LOC(clid);

@@ -34,6 +34,7 @@ fastpath_call(word_t cptr, word_t msgInfo)
     pde_t stored_hw_asid;
     word_t fault_type;
     dom_t dom;
+    word_t replyCanGrant;
 
     /* Get message info, length, and fault type. */
     info = messageInfoFromWord_raw(msgInfo);
@@ -109,13 +110,14 @@ fastpath_call(word_t cptr, word_t msgInfo)
     dom = maxDom ? ksCurDomain : 0;
     /* ensure only the idle thread or lower prio threads are present in the scheduler */
     if (likely(dest->tcbPriority < NODE_STATE(ksCurThread->tcbPriority)) &&
-            !isHighestPrio(dom, dest->tcbPriority)) {
+        !isHighestPrio(dom, dest->tcbPriority)) {
         slowpath(SysCall);
     }
 
-    /* Ensure that the endpoint has has grant rights so that we can
+    /* Ensure that the endpoint has has grant or grant-reply rights so that we can
      * create the reply cap */
-    if (unlikely(!cap_endpoint_cap_get_capCanGrant(ep_cap))) {
+    if (unlikely(!cap_endpoint_cap_get_capCanGrant(ep_cap) &&
+                 !cap_endpoint_cap_get_capCanGrantReply(ep_cap))) {
         slowpath(SysCall);
     }
 
@@ -168,12 +170,14 @@ fastpath_call(word_t cptr, word_t msgInfo)
     callerSlot = TCB_PTR_CTE_PTR(dest, tcbCaller);
 
     /* Insert reply cap */
-    cap_reply_cap_ptr_new_np(&callerSlot->cap, 0, TCB_REF(NODE_STATE(ksCurThread)));
+    replyCanGrant = thread_state_ptr_get_blockingIPCCanGrant(&dest->tcbState);;
+    cap_reply_cap_ptr_new_np(&callerSlot->cap, replyCanGrant, 0,
+                             TCB_REF(NODE_STATE(ksCurThread)));
     mdb_node_ptr_set_mdbPrev_np(&callerSlot->cteMDBNode, CTE_REF(replySlot));
     mdb_node_ptr_mset_mdbNext_mdbRevocable_mdbFirstBadged(
         &replySlot->cteMDBNode, CTE_REF(callerSlot), 1, 1);
 
-    fastpath_copy_mrs (length, NODE_STATE(ksCurThread), dest);
+    fastpath_copy_mrs(length, NODE_STATE(ksCurThread), dest);
 
     /* Dest thread is set Running, but not queued. */
     thread_state_ptr_set_tsType_np(&dest->tcbState,
@@ -185,8 +189,7 @@ fastpath_call(word_t cptr, word_t msgInfo)
     fastpath_restore(badge, msgInfo, NODE_STATE(ksCurThread));
 }
 
-void
-fastpath_reply_recv(word_t cptr, word_t msgInfo)
+void fastpath_reply_recv(word_t cptr, word_t msgInfo)
 {
     seL4_MessageInfo_t info;
     cap_t ep_cap;
@@ -228,7 +231,7 @@ fastpath_reply_recv(word_t cptr, word_t msgInfo)
 
     /* Check there is nothing waiting on the notification */
     if (NODE_STATE(ksCurThread)->tcbBoundNotification &&
-            notification_ptr_get_state(NODE_STATE(ksCurThread)->tcbBoundNotification) == NtfnState_Active) {
+        notification_ptr_get_state(NODE_STATE(ksCurThread)->tcbBoundNotification) == NtfnState_Active) {
         slowpath(SysReplyRecv);
     }
 
@@ -271,7 +274,7 @@ fastpath_reply_recv(word_t cptr, word_t msgInfo)
     cap_pd = cap_vtable_cap_get_vspace_root_fp(newVTable);
 
     /* Ensure that the destination has a valid MMU. */
-    if (unlikely(! isValidVTableRoot_fp (newVTable))) {
+    if (unlikely(! isValidVTableRoot_fp(newVTable))) {
         slowpath(SysReplyRecv);
     }
 
@@ -330,6 +333,8 @@ fastpath_reply_recv(word_t cptr, word_t msgInfo)
     /* Set thread state to BlockedOnReceive */
     thread_state_ptr_mset_blockingObject_tsType(
         &NODE_STATE(ksCurThread)->tcbState, (word_t)ep_ptr, ThreadState_BlockedOnReceive);
+    thread_state_ptr_set_blockingIPCCanGrant(&NODE_STATE(ksCurThread)->tcbState,
+                                             cap_endpoint_cap_get_capCanGrant(ep_cap));;
 
     /* Place the thread in the endpoint queue */
     endpointTail = endpoint_ptr_get_epQueue_tail_fp(ep_ptr);
@@ -364,7 +369,7 @@ fastpath_reply_recv(word_t cptr, word_t msgInfo)
     /* Replies don't have a badge. */
     badge = 0;
 
-    fastpath_copy_mrs (length, NODE_STATE(ksCurThread), caller);
+    fastpath_copy_mrs(length, NODE_STATE(ksCurThread), caller);
 
     /* Dest thread is set Running, but not queued. */
     thread_state_ptr_set_tsType_np(&caller->tcbState,

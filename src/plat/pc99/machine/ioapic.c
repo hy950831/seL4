@@ -45,12 +45,12 @@ static uint32_t num_ioapics = 0;
 
 static void ioapic_write(uint32_t ioapic, word_t reg, uint32_t value)
 {
-    *(volatile uint32_t*)((word_t)(PPTR_IOAPIC_START + ioapic * BIT(PAGE_BITS)) + reg) = value;
+    *(volatile uint32_t *)((word_t)(PPTR_IOAPIC_START + ioapic * BIT(PAGE_BITS)) + reg) = value;
 }
 
 static uint32_t ioapic_read(uint32_t ioapic, word_t reg)
 {
-    return *(volatile uint32_t*)((word_t)(PPTR_IOAPIC_START + ioapic * BIT(PAGE_BITS)) + reg);
+    return *(volatile uint32_t *)((word_t)(PPTR_IOAPIC_START + ioapic * BIT(PAGE_BITS)) + reg);
 }
 
 static void single_ioapic_init(word_t ioapic, cpu_id_t delivery_cpu)
@@ -64,7 +64,8 @@ static void single_ioapic_init(word_t ioapic, cpu_id_t delivery_cpu)
     for (i = 0; i < IOAPIC_IRQ_LINES; i++) {
         /* Send to desired cpu */
         ioapic_write(ioapic, IOAPIC_REGSEL, IOREDTBL_HIGH(i));
-        ioapic_write(ioapic, IOAPIC_WINDOW, (ioapic_read(ioapic, IOAPIC_WINDOW) & MASK(IOREDTBL_HIGH_RESERVED_BITS)) | (delivery_cpu << IOREDTBL_HIGH_RESERVED_BITS));
+        ioapic_write(ioapic, IOAPIC_WINDOW, (ioapic_read(ioapic,
+                                                         IOAPIC_WINDOW) & MASK(IOREDTBL_HIGH_RESERVED_BITS)) | (delivery_cpu << IOREDTBL_HIGH_RESERVED_BITS));
         /* mask and set 0 vector */
         ioredtbl_state[i] = IOREDTBL_LOW_INTERRUPT_MASK;
         ioapic_write(ioapic, IOAPIC_REGSEL, IOREDTBL_LOW(i));

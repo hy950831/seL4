@@ -29,7 +29,7 @@
 #include <linker.h>
 
 #include <arch/types.h>
-#include <mode/api/constants.h>
+#include <sel4/sel4_arch/constants.h>
 
 #define PAGE_BITS seL4_PageBits
 
@@ -51,13 +51,17 @@ enum vm_fault_type {
     RISCVInstructionAccessFault = 1,
     RISCVInstructionIllegal = 2,
     RISCVBreakpoint = 3,
+    /* reserved */
     RISCVLoadAccessFault = 5,
     RISCVAddressMisaligned = 6,
     RISCVStoreAccessFault = 7,
     RISCVEnvCall = 8,
+    /* 9-11 reserved */
     RISCVInstructionPageFault = 12,
     RISCVLoadPageFault = 13,
+    /* 14 - reserved */
     RISCVStorePageFault = 15
+                          /* >= 16 reserved */
 };
 typedef uint32_t vm_fault_type_t;
 
@@ -78,8 +82,7 @@ enum vm_page_size {
 };
 typedef uint32_t vm_page_size_t;
 
-static inline unsigned int CONST
-pageBitsForSize(vm_page_size_t pagesize)
+static inline unsigned int CONST pageBitsForSize(vm_page_size_t pagesize)
 {
     switch (pagesize) {
     case RISCV_4K_Page:

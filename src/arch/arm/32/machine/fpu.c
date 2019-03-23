@@ -33,12 +33,12 @@ BOOT_CODE static inline bool_t supportsAsyncExceptions(void)
         enableFpuInstInHyp();
     }
     /* Set FPEXC.EX=1 */
-    MRC(FPEXC, fpexc);
+    VMRS(FPEXC, fpexc);
     fpexc |= BIT(FPEXC_EX_BIT);
-    MCR(FPEXC, fpexc);
+    VMSR(FPEXC, fpexc);
 
     /* Read back the FPEXC register*/
-    MRC(FPEXC, fpexc);
+    VMRS(FPEXC, fpexc);
 
     return !!(fpexc & BIT(FPEXC_EX_BIT));
 }
@@ -54,17 +54,16 @@ bool_t isFPUD32SupportedCached;
 BOOT_CODE static inline bool_t isFPUD32Supported(void)
 {
     word_t mvfr0;
-    asm volatile (".word 0xeef73a10 \n"  /* vmrs    r3, mvfr0 */
-                  "mov %0, r3       \n"
-                  : "=r" (mvfr0)
-                  :
-                  : "r3");
+    asm volatile(".word 0xeef73a10 \n"   /* vmrs    r3, mvfr0 */
+                 "mov %0, r3       \n"
+                 : "=r"(mvfr0)
+                 :
+                 : "r3");
     return ((mvfr0 & 0xf) == 2);
 }
 
 /* Initialise the FP/SIMD for this machine. */
-BOOT_CODE bool_t
-fpsimd_init(void)
+BOOT_CODE bool_t fpsimd_init(void)
 {
     word_t cpacr;
 
@@ -89,8 +88,7 @@ fpsimd_init(void)
 }
 #endif /* CONFIG_HAVE_FPU */
 
-BOOT_CODE bool_t
-fpsimd_HWCapTest(void)
+BOOT_CODE bool_t fpsimd_HWCapTest(void)
 {
     word_t cpacr, fpsid;
 
@@ -107,10 +105,10 @@ fpsimd_HWCapTest(void)
     }
 
     /* Check of this platform supports HW FP instructions */
-    asm volatile (".word 0xeef00a10  \n" /* vmrs    r0, fpsid */
-                  "mov %0, r0        \n"
-                  : "=r" (fpsid) :
-                  : "r0");
+    asm volatile(".word 0xeef00a10  \n"  /* vmrs    r0, fpsid */
+                 "mov %0, r0        \n"
+                 : "=r"(fpsid) :
+                 : "r0");
     if (fpsid & BIT(FPSID_SW_BIT)) {
         return false;
     }

@@ -52,6 +52,7 @@
 
 /* Convert our values into general values expected by the common code */
 #define kernelBase KERNEL_BASE
+/* This is the top of the kernel window, not including the kernel image */
 #define PPTR_TOP KERNEL_BASE
 #define PPTR_USER_TOP PPTR_BASE
 #define BASE_OFFSET (PPTR_BASE - PADDR_BASE)
@@ -59,12 +60,11 @@
 #ifndef __ASSEMBLER__
 
 int get_num_avail_p_regs(void);
-p_region_t get_avail_p_reg(unsigned int i);
+p_region_t get_avail_p_reg(word_t i);
 bool_t add_avail_p_reg(p_region_t reg);
 void map_kernel_devices(void);
 
 bool_t CONST isReservedIRQ(irq_t irq);
-void handleReservedIRQ(irq_t irq);
 void ackInterrupt(irq_t irq);
 bool_t isIRQPending(void);
 /** MODIFIES: [*] */
@@ -83,23 +83,20 @@ void initIRQController(void);
 
 void handleSpuriousIRQ(void);
 
-/** MODIFIES: [*] */
 void plat_cleanL2Range(paddr_t start, paddr_t end);
-/** MODIFIES: [*] */
+
 void plat_invalidateL2Range(paddr_t start, paddr_t end);
-/** MODIFIES: [*] */
+
 void plat_cleanInvalidateL2Range(paddr_t start, paddr_t end);
 
-static inline void* CONST
-paddr_to_kpptr(paddr_t paddr)
+static inline void *CONST paddr_to_kpptr(paddr_t paddr)
 {
     assert(paddr < PADDR_HIGH_TOP);
     assert(paddr >= PADDR_LOAD);
-    return (void*)(paddr + KERNEL_BASE_OFFSET);
+    return (void *)(paddr + KERNEL_BASE_OFFSET);
 }
 
-static inline paddr_t CONST
-kpptr_to_paddr(void *pptr)
+static inline paddr_t CONST kpptr_to_paddr(void *pptr)
 {
     assert((word_t)pptr >= KERNEL_BASE);
     return (paddr_t)pptr - KERNEL_BASE_OFFSET;

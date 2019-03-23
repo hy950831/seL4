@@ -87,16 +87,15 @@ void VISIBLE NORETURN restore_user_context(void)
         LOAD_S "  t0, (4*%[REGSIZE])(t0) \n"
         "sret"
         : /* no output */
-        : [REGSIZE] "i" (sizeof(word_t)),
-        [cur_thread] "r" (cur_thread_reg)
+        : [REGSIZE] "i"(sizeof(word_t)),
+        [cur_thread] "r"(cur_thread_reg)
         : "memory"
     );
 
     UNREACHABLE();
 }
 
-void VISIBLE NORETURN
-c_handle_interrupt(void)
+void VISIBLE NORETURN c_handle_interrupt(void)
 {
     NODE_LOCK_IRQ;
 
@@ -108,21 +107,32 @@ c_handle_interrupt(void)
     UNREACHABLE();
 }
 
-void VISIBLE NORETURN
-c_handle_exception(void)
+void VISIBLE NORETURN c_handle_exception(void)
 {
     NODE_LOCK_SYS;
 
     c_entry_hook();
 
-    handle_exception();
+    word_t scause = read_scause();
+    switch (scause) {
+    case RISCVInstructionAccessFault:
+    case RISCVLoadAccessFault:
+    case RISCVStoreAccessFault:
+    case RISCVLoadPageFault:
+    case RISCVStorePageFault:
+    case RISCVInstructionPageFault:
+        handleVMFaultEvent(scause);
+        break;
+    default:
+        handleUserLevelFault(scause, read_sbadaddr());
+        break;
+    }
 
     restore_user_context();
     UNREACHABLE();
 }
 
-void NORETURN
-slowpath(syscall_t syscall)
+void NORETURN slowpath(syscall_t syscall)
 {
     /* check for undefined syscall */
     if (unlikely(syscall < SYSCALL_MIN || syscall > SYSCALL_MAX)) {
@@ -135,8 +145,8 @@ slowpath(syscall_t syscall)
     UNREACHABLE();
 }
 
-void VISIBLE NORETURN
-c_handle_syscall(word_t cptr, word_t msgInfo, word_t unused1, word_t unused2, word_t unused3, word_t unused4, word_t unused5, syscall_t syscall)
+void VISIBLE NORETURN c_handle_syscall(word_t cptr, word_t msgInfo, word_t unused1, word_t unused2, word_t unused3,
+                                       word_t unused4, word_t unused5, syscall_t syscall)
 {
     NODE_LOCK_SYS;
 

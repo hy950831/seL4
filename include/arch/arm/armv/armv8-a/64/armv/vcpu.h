@@ -26,7 +26,7 @@
 /* Allow native tasks to run at EL0, but restrict access */
 #define HCR_NATIVE ( HCR_COMMON | HCR_TGE | HCR_TVM | HCR_TTLB | HCR_DC \
                    | HCR_TAC | HCR_SWIO |  HCR_TSC | HCR_IMO | HCR_FMO | HCR_AMO)
-#define HCR_VCPU   ( HCR_COMMON)
+#define HCR_VCPU   ( HCR_COMMON | HCR_TSC)
 
 #define SCTLR_EL1_UCI       BIT(26)     /* Enable EL0 access to DC CVAU, DC CIVAC, DC CVAC,
                                            and IC IVAU in AArch64 state   */
@@ -115,323 +115,277 @@
 #define REG_VTCR_EL2        "vtcr_el2"
 
 /* for EL1 SCTLR */
-static inline word_t
-getSCTLR(void)
+static inline word_t getSCTLR(void)
 {
     return readSystemControlRegister();
 }
 
-static inline void
-setSCTLR(word_t sctlr)
+static inline void setSCTLR(word_t sctlr)
 {
     writeSystemControlRegister(sctlr);
 }
 
-static inline word_t
-readTTBR0(void)
+static inline word_t readTTBR0(void)
 {
     word_t reg;
     MRS(REG_TTBR0_EL1, reg);
     return reg;
 }
 
-static inline void
-writeTTBR0(word_t reg)
+static inline void writeTTBR0(word_t reg)
 {
     MSR(REG_TTBR0_EL1, reg);
 }
 
-static inline word_t
-readTTBR1(void)
+static inline word_t readTTBR1(void)
 {
     word_t reg;
     MRS(REG_TTBR1_EL1, reg);
     return reg;
 }
 
-static inline void
-writeTTBR1(word_t reg)
+static inline void writeTTBR1(word_t reg)
 {
     MSR(REG_TTBR1_EL1, reg);
 }
 
-static inline word_t
-readTCR(void)
+static inline word_t readTCR(void)
 {
     word_t reg;
     MRS(REG_TCR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeTCR(word_t reg)
+static inline void writeTCR(word_t reg)
 {
     MSR(REG_TCR_EL1, reg);
 }
 
-static inline word_t
-readMAIR(void)
+static inline word_t readMAIR(void)
 {
     word_t reg;
     MRS(REG_MAIR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeMAIR(word_t reg)
+static inline void writeMAIR(word_t reg)
 {
     MSR(REG_MAIR_EL1, reg);
 }
 
-static inline word_t
-readAMAIR(void)
+static inline word_t readAMAIR(void)
 {
     word_t reg;
     MRS(REG_AMAIR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeAMAIR(word_t reg)
+static inline void writeAMAIR(word_t reg)
 {
     MSR(REG_AMAIR_EL1, reg);
 }
 
-static inline word_t
-readCIDR(void)
+static inline word_t readCIDR(void)
 {
     uint32_t reg;
     MRS(REG_CONTEXTIDR_EL1, reg);
     return (word_t)reg;
 }
 
-static inline void
-writeCIDR(word_t reg)
+static inline void writeCIDR(word_t reg)
 {
     MSR(REG_CONTEXTIDR_EL1, (uint32_t)reg);
 }
 
-static inline word_t
-readACTLR(void)
+static inline word_t readACTLR(void)
 {
     word_t reg;
     MRS(REG_ACTLR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeACTLR(word_t reg)
+static inline void writeACTLR(word_t reg)
 {
     MSR(REG_ACTLR_EL1, reg);
 }
 
-static inline word_t
-readAFSR0(void)
+static inline word_t readAFSR0(void)
 {
     uint32_t reg;
     MRS(REG_AFSR0_EL1, reg);
     return (word_t)reg;
 }
 
-static inline void
-writeAFSR0(word_t reg)
+static inline void writeAFSR0(word_t reg)
 {
     MSR(REG_AFSR0_EL1, (uint32_t)reg);
 }
 
-static inline word_t
-readAFSR1(void)
+static inline word_t readAFSR1(void)
 {
     uint32_t reg;
     MRS(REG_AFSR1_EL1, reg);
     return (word_t)reg;
 }
 
-static inline void
-writeAFSR1(word_t reg)
+static inline void writeAFSR1(word_t reg)
 {
     MSR(REG_AFSR1_EL1, (uint32_t)reg);
 }
 
-static inline word_t
-readESR(void)
+static inline word_t readESR(void)
 {
     uint32_t reg;
     MRS(REG_ESR_EL1, reg);
     return (word_t)reg;
 }
 
-static inline void
-writeESR(word_t reg)
+static inline void writeESR(word_t reg)
 {
     MSR(REG_ESR_EL1, (uint32_t)reg);
 }
 
-static inline word_t
-readFAR(void)
+static inline word_t readFAR(void)
 {
     word_t reg;
     MRS(REG_FAR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeFAR(word_t reg)
+static inline void writeFAR(word_t reg)
 {
     MSR(REG_FAR_EL1, (uint32_t)reg);
 }
 
 /* ISR is read-only */
-static inline word_t
-readISR(void)
+static inline word_t readISR(void)
 {
     uint32_t reg;
     MRS(REG_ISR_EL1, reg);
     return (word_t)reg;
 }
 
-static inline word_t
-readVBAR(void)
+static inline word_t readVBAR(void)
 {
     word_t reg;
     MRS(REG_VBAR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeVBAR(word_t reg)
+static inline void writeVBAR(word_t reg)
 {
     MSR(REG_VBAR_EL1, reg);
 }
 
-static inline word_t
-readTPIDR_EL0(void)
+static inline word_t readTPIDR_EL0(void)
 {
     word_t reg;
     MRS(REG_TPIDR_EL0, reg);
     return reg;
 }
 
-static inline void
-writeTPIDR_EL0(word_t reg)
+static inline void writeTPIDR_EL0(word_t reg)
 {
     MSR(REG_TPIDR_EL0, reg);
 }
 
-static inline word_t
-readTPIDR_EL1(void)
+static inline word_t readTPIDR_EL1(void)
 {
     word_t reg;
     MRS(REG_TPIDR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeTPIDR_EL1(word_t reg)
+static inline void writeTPIDR_EL1(word_t reg)
 {
     MSR(REG_TPIDR_EL1, reg);
 }
 
-static inline word_t
-readTPIDRRO_EL0(void)
+static inline word_t readTPIDRRO_EL0(void)
 {
     word_t reg;
     MRS(REG_TPIDRRO_EL0, reg);
     return reg;
 }
 
-static inline void
-writeTPIDRRO_EL0(word_t reg)
+static inline void writeTPIDRRO_EL0(word_t reg)
 {
     MSR(REG_TPIDRRO_EL0, reg);
 }
 
-static inline word_t
-readSP_EL1(void)
+static inline word_t readSP_EL1(void)
 {
     word_t reg;
     MRS(REG_SP_EL1, reg);
     return reg;
 }
 
-static inline void
-writeSP_EL1(word_t reg)
+static inline void writeSP_EL1(word_t reg)
 {
     MSR(REG_SP_EL1, reg);
 }
 
-static inline word_t
-readELR_EL1(void)
+static inline word_t readELR_EL1(void)
 {
     word_t reg;
     MRS(REG_ELR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeELR_EL1(word_t reg)
+static inline void writeELR_EL1(word_t reg)
 {
     MRS(REG_ELR_EL1, reg);
 }
 
-static inline word_t
-readSPSR_EL1(void)
+static inline word_t readSPSR_EL1(void)
 {
     word_t reg;
     MRS(REG_SPSR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeSPSR_EL1(word_t reg)
+static inline void writeSPSR_EL1(word_t reg)
 {
     MSR(REG_SPSR_EL1, reg);
 }
 
-static inline word_t
-readCPACR_EL1(void)
+static inline word_t readCPACR_EL1(void)
 {
     word_t reg;
     MRS(REG_CPACR_EL1, reg);
     return reg;
 }
 
-static inline void
-writeCPACR_EL1(word_t reg)
+static inline void writeCPACR_EL1(word_t reg)
 {
     MSR(REG_CPACR_EL1, reg);
 }
 
-static inline word_t
-readCNTV_TVAL_EL0(void)
+static inline word_t readCNTV_TVAL_EL0(void)
 {
     word_t reg;
     MRS(REG_CNTV_TVAL_EL0, reg);
     return reg;
 }
 
-static inline void
-writeCNTV_TVAL_EL0(word_t reg)
+static inline void writeCNTV_TVAL_EL0(word_t reg)
 {
     MSR(REG_CNTV_TVAL_EL0, reg);
 }
 
-static inline word_t
-readCNTV_CTL_EL0(void)
+static inline word_t readCNTV_CTL_EL0(void)
 {
     word_t reg;
     MRS(REG_CNTV_CTL_EL0, reg);
     return reg;
 }
 
-static inline void
-writeCNTV_CTL_EL0(word_t reg)
+static inline void writeCNTV_CTL_EL0(word_t reg)
 {
     MSR(REG_CNTV_CTL_EL0, reg);
 }
 
-static word_t
-vcpu_hw_read_reg(word_t reg_index)
+static word_t vcpu_hw_read_reg(word_t reg_index)
 {
     word_t reg = 0;
     switch (reg_index) {
@@ -490,8 +444,7 @@ vcpu_hw_read_reg(word_t reg_index)
     return reg;
 }
 
-static void
-vcpu_hw_write_reg(word_t reg_index, word_t reg)
+static void vcpu_hw_write_reg(word_t reg_index, word_t reg)
 {
     switch (reg_index) {
     case seL4_VCPUReg_SCTLR:
@@ -550,105 +503,7 @@ vcpu_hw_write_reg(word_t reg_index, word_t reg)
     return;
 }
 
-static inline void
-vcpu_save_reg(vcpu_t *vcpu, word_t reg)
-{
-    if (reg >= seL4_VCPUReg_Num || vcpu == NULL) {
-        fail("ARM/HYP: Invalid register index or NULL VCPU");
-        return;
-    }
-    vcpu->regs[reg] = vcpu_hw_read_reg(reg);
-}
-
-static inline void
-vcpu_save_reg_range(vcpu_t *vcpu, word_t start, word_t end)
-{
-    for (word_t i = start; i <= end; i++) {
-        vcpu_save_reg(vcpu, i);
-    }
-}
-
-static inline void
-vcpu_restore_reg(vcpu_t *vcpu, word_t reg)
-{
-    if (reg >= seL4_VCPUReg_Num || vcpu == NULL) {
-        fail("ARM/HYP: Invalid register index or NULL VCPU");
-        return;
-    }
-    vcpu_hw_write_reg(reg, vcpu->regs[reg]);
-}
-
-static inline void
-vcpu_restore_reg_range(vcpu_t *vcpu, word_t start, word_t end)
-{
-    for (word_t i = start; i <= end; i++) {
-        vcpu_restore_reg(vcpu, i);
-    }
-}
-
-static inline word_t
-vcpu_read_reg(vcpu_t *vcpu, word_t reg)
-{
-    if (reg >= seL4_VCPUReg_Num || vcpu == NULL) {
-        fail("ARM/HYP: Invalid register index or NULL VCPU");
-        return 0;
-    }
-    return vcpu->regs[reg];
-}
-
-static inline void
-vcpu_write_reg(vcpu_t *vcpu, word_t reg, word_t value)
-{
-    if (reg >= seL4_VCPUReg_Num || vcpu == NULL) {
-        fail("ARM/HYP: Invalid register index or NULL VCPU");
-        return;
-    }
-    vcpu->regs[reg] = value;
-}
-
-static word_t
-readVCPUReg(vcpu_t *vcpu, word_t field)
-{
-    if (likely(armHSCurVCPU == vcpu)) {
-        switch (field) {
-        case seL4_VCPUReg_SCTLR:
-            /* The SCTLR value is switched to/from hardware when we enable/disable
-             * the vcpu, not when we switch vcpus */
-            if (armHSVCPUActive) {
-                return getSCTLR();
-            } else {
-                return vcpu_read_reg(vcpu, field);
-            }
-        default:
-            return vcpu_hw_read_reg(field);
-        }
-    } else {
-        return vcpu_read_reg(vcpu, field);
-    }
-}
-
-static void
-writeVCPUReg(vcpu_t *vcpu, word_t field, word_t value)
-{
-    if (likely(armHSCurVCPU == vcpu)) {
-        switch (field) {
-        case seL4_VCPUReg_SCTLR:
-            if (armHSVCPUActive) {
-                setSCTLR(value);
-            } else {
-                vcpu_write_reg(vcpu, field, value);
-            }
-            break;
-        default:
-            return vcpu_hw_write_reg(field, value);
-        }
-    } else {
-        vcpu_write_reg(vcpu, field, value);
-    }
-}
-
-static inline void
-vcpu_init_vtcr(void)
+static inline void vcpu_init_vtcr(void)
 {
     /* Set up the stage-2 translation control register for cores supporting 44-bit PA */
     uint32_t vtcr_el2 = VTCR_EL2_T0SZ(20);                   // 44-bit input IPA
@@ -664,8 +519,7 @@ vcpu_init_vtcr(void)
     isb();
 }
 
-static inline void
-armv_vcpu_boot_init(void)
+static inline void armv_vcpu_boot_init(void)
 {
     word_t hcr_el2 = 0;
 
@@ -680,22 +534,20 @@ armv_vcpu_boot_init(void)
     isb();
 }
 
-static inline void
-armv_vcpu_enable(vcpu_t *vcpu)
+static inline void armv_vcpu_enable(vcpu_t *vcpu)
 {
     MSR(REG_HCR_EL2, HCR_VCPU);
     isb();
-    vcpu_restore_reg(vcpu, seL4_VCPUReg_SCTLR);
+    vcpu_hw_write_reg(seL4_VCPUReg_SCTLR, vcpu->regs[seL4_VCPUReg_SCTLR]);
     isb();
 
     set_gic_vcpu_ctrl_hcr(vcpu->vgic.hcr);
 #ifdef CONFIG_HAVE_FPU
-    vcpu_restore_reg(vcpu, seL4_VCPUReg_CPACR);
+    vcpu_hw_write_reg(seL4_VCPUReg_CPACR, vcpu->regs[seL4_VCPUReg_CPACR]);
 #endif
 }
 
-static inline void
-armv_vcpu_disable(vcpu_t *vcpu)
+static inline void armv_vcpu_disable(vcpu_t *vcpu)
 {
 
     uint32_t hcr;
@@ -703,9 +555,9 @@ armv_vcpu_disable(vcpu_t *vcpu)
     if (likely(vcpu)) {
         hcr = get_gic_vcpu_ctrl_hcr();
         vcpu->vgic.hcr = hcr;
-        vcpu_save_reg(vcpu, seL4_VCPUReg_SCTLR);
+        vcpu->regs[seL4_VCPUReg_SCTLR] = vcpu_hw_read_reg(seL4_VCPUReg_SCTLR);
 #ifdef CONFIG_HAVE_FPU
-        vcpu_save_reg(vcpu, seL4_VCPUReg_CPACR);
+        vcpu->regs[seL4_VCPUReg_CPACR] = vcpu_hw_read_reg(seL4_VCPUReg_CPACR);
 #endif
         isb();
     }
@@ -728,14 +580,12 @@ armv_vcpu_disable(vcpu_t *vcpu)
 #endif
 }
 
-static inline void
-armv_vcpu_init(vcpu_t *vcpu)
+static inline void armv_vcpu_init(vcpu_t *vcpu)
 {
-    vcpu_write_reg(vcpu, seL4_VCPUReg_SCTLR, SCTLR_EL1_VM);
+    vcpu->regs[seL4_VCPUReg_SCTLR] = SCTLR_EL1_VM;
 }
 
-static inline bool_t
-armv_handleVCPUFault(word_t hsr)
+static inline bool_t armv_handleVCPUFault(word_t hsr)
 {
 #ifdef CONFIG_HAVE_FPU
     if ((ESR_EC(hsr) == ESR_EC_TFP || ESR_EC(hsr) == ESR_EC_CPACR) && !isFpuEnable()) {
@@ -746,7 +596,7 @@ armv_handleVCPUFault(word_t hsr)
 #endif
 
     if (hsr == UNKNOWN_FAULT) {
-        handleUserLevelFault(0, 0);
+        handleUserLevelFault(getESR(), 0);
         return true;
     }
 

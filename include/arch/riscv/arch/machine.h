@@ -29,19 +29,19 @@
 
 static inline void sfence(void)
 {
-    asm volatile ("sfence.vma" ::: "memory");
+    asm volatile("sfence.vma" ::: "memory");
 }
 
 static inline void hwASIDFlush(asid_t asid)
 {
-    asm volatile ("sfence.vma x0, %0" :: "r" (asid): "memory");
+    asm volatile("sfence.vma x0, %0" :: "r"(asid): "memory");
 }
 
 word_t PURE getRestartPC(tcb_t *thread);
 void setNextPC(tcb_t *thread, word_t v);
 
 /* Cleaning memory before user-level access */
-static inline void clearMemory(void* ptr, unsigned int bits)
+static inline void clearMemory(void *ptr, unsigned int bits)
 {
     memzero(ptr, BIT(bits));
 }

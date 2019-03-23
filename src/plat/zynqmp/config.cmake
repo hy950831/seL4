@@ -14,6 +14,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 if(KernelPlatformUltra96)
     # Ultra96 is is basically Zynqmp
+    list(APPEND KernelDTSList "tools/dts/ultra96.dts")
     config_set(KernelPlatformZynqmp PLAT_ZYNQMP ON)
     config_set(KernelPlatformZynqmpUltra96 PLAT_ZYNQMP_ULTRA96 ON)
 endif()
@@ -26,12 +27,13 @@ if(KernelPlatformZynqmp)
     if(KernelSel4ArchAarch64)
         set(KernelHaveFPU ON)
     endif()
+
+    if(NOT KernelPlatformUltra96)
+        list(APPEND KernelDTSList "tools/dts/zynqmp.dts")
+    endif()
 endif()
 
 add_sources(
     DEP "KernelPlatformZynqmp"
-    CFILES
-        src/plat/zynqmp/machine/hardware.c
-        src/plat/zynqmp/machine/io.c
-        src/arch/arm/machine/generic_timer.c
+    CFILES src/arch/arm/machine/gic_pl390.c src/arch/arm/machine/l2c_nop.c
 )

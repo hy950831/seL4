@@ -88,7 +88,7 @@
 #include <assert.h>
 #include <util.h>
 #include <arch/types.h>
-#include <plat/api/constants.h>
+#include <sel4/plat/api/constants.h>
 
 /* These are the indices of the registers in the saved thread context.
  * The values are determined by the order in which they're saved in the trap handler. */
@@ -147,9 +147,9 @@ enum _register {
     n_contextRegisters          = 36,
 };
 
-compile_assert(sp_offset_correct, SP_EL0 * sizeof(word_t) == PT_SP_EL0)
-compile_assert(lr_svc_offset_correct, ELR_EL1 * sizeof(word_t) == PT_ELR_EL1)
-compile_assert(faultinstruction_offset_correct, FaultInstruction * sizeof(word_t) == PT_FaultInstruction)
+compile_assert(sp_offset_correct, SP_EL0 *sizeof(word_t) == PT_SP_EL0)
+compile_assert(lr_svc_offset_correct, ELR_EL1 *sizeof(word_t) == PT_ELR_EL1)
+compile_assert(faultinstruction_offset_correct, FaultInstruction *sizeof(word_t) == PT_FaultInstruction)
 
 typedef word_t register_t;
 
@@ -216,7 +216,7 @@ unverified_compile_assert(registers_are_first_member_of_user_context,
                           OFFSETOF(user_context_t, registers) == 0)
 
 
-static inline void Arch_initContext(user_context_t* context)
+static inline void Arch_initContext(user_context_t *context)
 {
     context->registers[SPSR_EL1] = PSTATE_USER;
 }
